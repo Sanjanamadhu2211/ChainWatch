@@ -2,46 +2,25 @@ import type { Advisory, PackageId } from "../core/types";
 import { packageKey, type AdvisoryProvider, type Lookup } from "./provider";
 import { parseOsvVuln, queryBatchResponseSchema } from "./schema";
 
-export const DEFAULT_OSV_URL = "https://api.osv.dev";
-
-export interface OsvClientOptions {
-  baseUrl?: string;
-  fetch?: typeof fetch;
-  timeoutMs?: number;
-  maxRetries?: number;
-  /** Queries per querybatch request. OSV documents a limit of 1000. */
-  batchSize?: number;
-  /** Parallel HTTP requests. */
-  concurrency?: number;
-  userAgent?: string;
-  sleep?: (ms: number) => Promise<void>;
-}
+const DEFAULT_OSV_URL = "https://api.osv.dev";
 
 class OsvError extends Error {}
 
 const MAX_PAGES = 50;
+const TIMEOUT_MS = 15_000;
+const MAX_RETRIES = 3;
 const MAX_BACKOFF_MS = 8000;
 const MAX_RETRY_AFTER_MS = 30_000;
+// OSV documents a limit of 1000 queries per querybatch request.
+const BATCH_SIZE = 1000;
+const CONCURRENCY = 6;
+const USER_AGENT = "chainwatch";
 
 export class OsvClient implements AdvisoryProvider {
   private readonly baseUrl: string;
-  private readonly fetchFn: typeof fetch;
-  private readonly timeoutMs: number;
-  private readonly maxRetries: number;
-  private readonly batchSize: number;
-  private readonly concurrency: number;
-  private readonly userAgent: string;
-  private readonly sleep: (ms: number) => Promise<void>;
 
-  constructor(options: OsvClientOptions = {}) {
-    this.baseUrl = (options.baseUrl ?? DEFAULT_OSV_URL).replace(/\/+$/, "");
-    this.fetchFn = options.fetch ?? fetch;
-    this.timeoutMs = options.timeoutMs ?? 15_000;
-    this.maxRetries = options.maxRetries ?? 3;
-    this.batchSize = options.batchSize ?? 1000;
-    this.concurrency = options.concurrency ?? 6;
-    this.userAgent = options.userAgent ?? "chainwatch";
-    this.sleep = options.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+  constructor(baseUrl = DEFAULT_OSV_URL) {
+    this.baseUrl = baseUrl.replace(/\/+$/, "");
   }
 
   async queryBatch(packages: PackageId[]): Promise<Map<string, Lookup<string[]>>> {
@@ -59,11 +38,11 @@ export class OsvClient implements AdvisoryProvider {
         break;
       }
       const chunks: Item[][] = [];
-      for (let i = 0; i < pending.length; i += this.batchSize)
-        chunks.push(pending.slice(i, i + this.batchSize));
+      for (let i = 0; i < pending.length; i += BATCH_SIZE)
+        chunks.push(pending.slice(i, i + BATCH_SIZE));
 
       const next: Item[] = [];
-      await mapPool(chunks, this.concurrency, async (chunk) => {
+      await mapPool(chunks, CONCURRENCY, async (chunk) => {
         try {
           const body = {
             queries: chunk.map((item) => ({
@@ -104,7 +83,7 @@ export class OsvClient implements AdvisoryProvider {
 
   async getAdvisories(ids: string[]): Promise<Map<string, Lookup<Advisory>>> {
     const out = new Map<string, Lookup<Advisory>>();
-    await mapPool([...new Set(ids)], this.concurrency, async (id) => {
+    await mapPool([...new Set(ids)], CONCURRENCY, async (id) => {
       try {
         const json = await this.request("GET", `/v1/vulns/${encodeURIComponent(id)}`);
         out.set(id, { ok: true, value: parseOsvVuln(json) });
@@ -118,17 +97,17 @@ export class OsvClient implements AdvisoryProvider {
   /** One request with a timeout and bounded retries for transient failures. */
   private async request(method: "GET" | "POST", path: string, body?: unknown): Promise<unknown> {
     let lastError = "unknown error";
-    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       let retryAfterMs: number | undefined;
       try {
-        const res = await this.fetchFn(this.baseUrl + path, {
+        const res = await fetch(this.baseUrl + path, {
           method,
           headers: {
-            "user-agent": this.userAgent,
+            "user-agent": USER_AGENT,
             ...(body !== undefined ? { "content-type": "application/json" } : {}),
           },
           body: body !== undefined ? JSON.stringify(body) : undefined,
-          signal: AbortSignal.timeout(this.timeoutMs),
+          signal: AbortSignal.timeout(TIMEOUT_MS),
         });
         if (res.ok) {
           try {
@@ -145,12 +124,12 @@ export class OsvClient implements AdvisoryProvider {
         if (e instanceof OsvError) throw e;
         lastError = `could not reach OSV (${describe(e)})`;
       }
-      if (attempt < this.maxRetries) {
+      if (attempt < MAX_RETRIES) {
         const backoff = Math.min(500 * 2 ** attempt, MAX_BACKOFF_MS) * (0.5 + Math.random() / 2);
-        await this.sleep(retryAfterMs ?? backoff);
+        await new Promise((resolve) => setTimeout(resolve, retryAfterMs ?? backoff));
       }
     }
-    throw new OsvError(`${lastError} after ${this.maxRetries + 1} attempts`);
+    throw new OsvError(`${lastError} after ${MAX_RETRIES + 1} attempts`);
   }
 }
 
