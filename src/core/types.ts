@@ -145,5 +145,7 @@ export interface ScanResult {
   };
   findings: Finding[];
   policy?: PolicyResult;
+  /** Problems that do not change the scan status, such as packages that could not be checked by design. */
+  warnings: string[];
   errors: ScanError[];
 }
