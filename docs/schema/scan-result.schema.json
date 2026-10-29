@@ -1,0 +1,357 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "toolVersion": {
+      "type": "string"
+    },
+    "scanId": {
+      "type": "string"
+    },
+    "startedAt": {
+      "type": "string"
+    },
+    "completedAt": {
+      "type": "string"
+    },
+    "rootPath": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "complete",
+        "partial",
+        "failed"
+      ]
+    },
+    "coverage": {
+      "type": "object",
+      "properties": {
+        "packagesScanned": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "queried": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "skipped": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "packagesScanned",
+        "queried",
+        "failed",
+        "skipped"
+      ],
+      "additionalProperties": false
+    },
+    "advisoryData": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "const": "osv"
+        },
+        "freshLookups": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "cacheHits": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "staleCacheHits": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "oldestFetchedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "freshLookups",
+        "cacheHits",
+        "staleCacheHits"
+      ],
+      "additionalProperties": false
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "package": {
+            "type": "object",
+            "properties": {
+              "ecosystem": {
+                "type": "string",
+                "const": "npm"
+              },
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ecosystem",
+              "name",
+              "version"
+            ],
+            "additionalProperties": false
+          },
+          "advisoryId": {
+            "type": "string"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "summary": {
+            "type": "string"
+          },
+          "installedVersion": {
+            "type": "string"
+          },
+          "nodeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "direct": {
+            "type": "boolean"
+          },
+          "dev": {
+            "type": "boolean"
+          },
+          "optional": {
+            "type": "boolean"
+          },
+          "upstreamSeverity": {
+            "type": "object",
+            "properties": {
+              "cvssScore": {
+                "type": "number"
+              },
+              "label": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string",
+                "enum": [
+                  "cvss-vector",
+                  "label",
+                  "none"
+                ]
+              }
+            },
+            "required": [
+              "source"
+            ],
+            "additionalProperties": false
+          },
+          "fixedVersions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "suggestedAction": {
+            "type": "string"
+          },
+          "dependencyPaths": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "dependencyPathCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "riskScore": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "riskLevel": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "unknown"
+            ]
+          },
+          "factors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "contribution": {
+                  "type": "number"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "contribution",
+                "reason"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "package",
+          "advisoryId",
+          "aliases",
+          "installedVersion",
+          "nodeIds",
+          "direct",
+          "dev",
+          "optional",
+          "upstreamSeverity",
+          "fixedVersions",
+          "suggestedAction",
+          "dependencyPaths",
+          "dependencyPathCount",
+          "riskScore",
+          "riskLevel",
+          "factors",
+          "references"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "boolean"
+        },
+        "failOn": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "none"
+          ]
+        },
+        "failingFindingIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ignoredFindingIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "passed",
+        "failOn",
+        "failingFindingIds",
+        "ignoredFindingIds",
+        "warnings"
+      ],
+      "additionalProperties": false
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "toolVersion",
+    "scanId",
+    "startedAt",
+    "completedAt",
+    "rootPath",
+    "status",
+    "coverage",
+    "advisoryData",
+    "findings",
+    "warnings",
+    "errors"
+  ],
+  "additionalProperties": false
+}
