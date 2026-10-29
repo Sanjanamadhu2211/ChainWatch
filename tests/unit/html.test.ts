@@ -62,6 +62,28 @@ describe("renderHtml", () => {
     const html = renderHtml(result({ status: "partial" }));
     expect(html).toContain("NOT a clean result");
   });
+
+  it("shows the policy decision with its warnings, escaped", () => {
+    const html = renderHtml(
+      result({
+        policy: {
+          passed: true,
+          failOn: "critical",
+          failingFindingIds: [],
+          ignoredFindingIds: ["f1"],
+          warnings: [hostile],
+        },
+      }),
+    );
+    expect(html).toContain("Policy: passed at fail-on critical; 0 finding(s) fail the policy.");
+    expect(html).toContain("1 finding(s) ignored by exceptions in the config.");
+    expect(html).not.toContain("<script>alert");
+    expect(html).toContain("warning: &lt;script&gt;alert(1)");
+  });
+
+  it("omits the policy section for a saved scan without a policy", () => {
+    expect(renderHtml(result())).not.toContain(`class="policy"`);
+  });
 });
 
 describe("renderJson", () => {

@@ -37,6 +37,50 @@ describe("renderTerminal", () => {
   });
 });
 
+describe("renderTerminal policy", () => {
+  const policy = {
+    passed: false,
+    failOn: "high" as const,
+    failingFindingIds: ["f1"],
+    ignoredFindingIds: [],
+    warnings: [],
+  };
+
+  it("states the policy decision and how many findings fail it", () => {
+    const out = renderTerminal(result({ findings: [finding()], policy }));
+    expect(out).toContain("Policy: failed at fail-on high; 1 finding(s) fail the policy.");
+  });
+
+  it("counts findings ignored by exceptions and prints warnings", () => {
+    const out = renderTerminal(
+      result({
+        policy: {
+          ...policy,
+          passed: true,
+          failingFindingIds: [],
+          ignoredFindingIds: ["f1", "f2"],
+          warnings: ["exception for CVE-1 expired on 2026-01-01; its findings count again"],
+        },
+      }),
+    );
+    expect(out).toContain("Policy: passed at fail-on high; 0 finding(s) fail the policy.");
+    expect(out).toContain("2 finding(s) ignored by exceptions in the config.");
+    expect(out).toContain(
+      "warning: exception for CVE-1 expired on 2026-01-01; its findings count again",
+    );
+  });
+
+  it("says the policy is not gating when fail-on is none", () => {
+    const out = renderTerminal(result({ policy: { ...policy, failOn: "none", passed: true } }));
+    expect(out).toContain("Policy: not gating (fail-on is none).");
+    expect(out).not.toContain("fail the policy");
+  });
+
+  it("prints no policy line for a saved scan without a policy", () => {
+    expect(renderTerminal(result())).not.toContain("Policy:");
+  });
+});
+
 describe("renderExplain", () => {
   it("prints the detailed sections for a matching finding", () => {
     const out = renderExplain(result(), [finding()], "minimist@0.0.8");

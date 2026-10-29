@@ -11,6 +11,23 @@ export function riskTag(f: Pick<Finding, "riskLevel" | "riskScore">): string {
     : `${f.riskLevel.toUpperCase()} (score ${f.riskScore})`;
 }
 
+/** The policy decision. Empty for saved scans that predate policy. */
+export function policyLines(result: ScanResult): string[] {
+  const p = result.policy;
+  if (!p) return [];
+  const lines =
+    p.failOn === "none"
+      ? ["Policy: not gating (fail-on is none)."]
+      : [
+          `Policy: ${p.passed ? "passed" : "failed"} at fail-on ${p.failOn}; ` +
+            `${p.failingFindingIds.length} finding(s) fail the policy.`,
+        ];
+  if (p.ignoredFindingIds.length) {
+    lines.push(`${p.ignoredFindingIds.length} finding(s) ignored by exceptions in the config.`);
+  }
+  return [...lines, ...p.warnings.map((w) => `warning: ${w}`)];
+}
+
 /** Warnings, errors and a closing note when the scan is not complete. */
 export function problemLines(result: ScanResult): string[] {
   const lines = [

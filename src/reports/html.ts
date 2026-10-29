@@ -1,5 +1,5 @@
 import type { Finding, ScanResult } from "../core/types";
-import { printable, problemLines, riskTag } from "./text";
+import { policyLines, printable, problemLines, riskTag } from "./text";
 
 const ENTITY: Record<string, string> = {
   "&": "&amp;",
@@ -56,6 +56,7 @@ export function renderHtml(result: ScanResult): string {
             : "No vulnerabilities found in the packages that were checked."
         }</p>`
       : `<p>${result.findings.length} finding(s):</p>\n${result.findings.map(renderFinding).join("\n")}`;
+  const policy = policyLines(result);
   const problems = problemLines(result);
   return `<!doctype html>
 <html lang="en">
@@ -80,6 +81,7 @@ code { word-break: break-all; }
 <p>Checked ${coverage.queried} of ${coverage.packagesScanned} installed packages (${coverage.skipped} skipped, ${coverage.failed} could not be checked).</p>
 <p>Advisory data: ${advisoryData.freshLookups} fetched from OSV, ${advisoryData.cacheHits} from cache${advisoryData.staleCacheHits ? ` (${advisoryData.staleCacheHits} past their TTL)` : ""}.</p>
 ${findings}
+${policy.length ? `<section class="policy">${policy.map((l) => `<p>${esc(l)}</p>`).join("")}</section>` : ""}
 ${problems.length ? `<section class="problems">${problems.map((l) => `<p>${esc(l)}</p>`).join("")}</section>` : ""}
 <footer><p>Scan ${esc(result.scanId)} of ${esc(result.rootPath)} at ${esc(result.completedAt)}, chainwatch ${esc(result.toolVersion)}.</p></footer>
 </body>

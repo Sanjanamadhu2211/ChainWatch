@@ -1,5 +1,5 @@
 import type { Finding, ScanResult } from "../core/types";
-import { printable, problemLines, riskTag } from "./text";
+import { policyLines, printable, problemLines, riskTag } from "./text";
 
 function renderFinding(f: Finding): string[] {
   const lines = [
@@ -59,6 +59,8 @@ export function renderTerminal(result: ScanResult): string {
     out.push(`${result.findings.length} finding(s):`, "");
     for (const f of result.findings) out.push(...renderFinding(f), "");
   }
+  const policy = policyLines(result);
+  if (policy.length) out.push(...policy, "");
   out.push(...problemLines(result));
   return out.map(printable).join("\n");
 }
