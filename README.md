@@ -79,8 +79,9 @@ the report prints a warning.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs `npm run check` and `npm run build` on every push to
-`dev` or `main` and on pull requests. A second job scans the repository's own lockfile and
+`.github/workflows/ci.yml` runs `npm run check` and `npm run build` on every pull
+request and on every push to `main`, so a branch with an open pull request is checked once per
+push. A second job scans the repository's own lockfile and
 uploads the JSON report as the `chainwatch-scan` artifact.
 
 ## Privacy
