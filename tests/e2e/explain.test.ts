@@ -1,8 +1,8 @@
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
-import { buildCli, fixture, runCli, startFakeOsv } from "./helpers";
+import { afterEach, describe, expect, it } from "vitest";
+import { fixture, runCli, startFakeOsv } from "./helpers";
 
 type Fake = Awaited<ReturnType<typeof startFakeOsv>>;
 let fake: Fake | undefined;
@@ -14,8 +14,6 @@ const env = async (url: string) => ({
 });
 
 describe("chainwatch explain", () => {
-  beforeAll(buildCli, 60_000);
-
   it("explains every finding for name@version and nothing for other packages", async () => {
     fake = await startFakeOsv();
     const r = await runCli(

@@ -1,8 +1,8 @@
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
-import { buildCli, fixture, runCli, startFakeOsv } from "./helpers";
+import { afterEach, describe, expect, it } from "vitest";
+import { fixture, runCli, startFakeOsv } from "./helpers";
 
 type Fake = Awaited<ReturnType<typeof startFakeOsv>>;
 let fake: Fake | undefined;
@@ -21,8 +21,6 @@ const configFile = async (text: string) => {
 };
 
 describe("chainwatch scan", () => {
-  beforeAll(buildCli, 60_000);
-
   it("reports vulnerabilities with their dependency path and fix", async () => {
     fake = await startFakeOsv();
     const r = await runCli(["scan", fixture("vulnerable")], await env(fake.url));

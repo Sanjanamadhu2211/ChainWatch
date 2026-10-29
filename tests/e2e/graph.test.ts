@@ -1,9 +1,7 @@
-import { beforeAll, describe, expect, it } from "vitest";
-import { buildCli, fixture, runCli } from "./helpers";
+import { describe, expect, it } from "vitest";
+import { fixture, runCli } from "./helpers";
 
 describe("chainwatch graph", () => {
-  beforeAll(buildCli, 60_000);
-
   it("prints the dependency tree with dev markers", async () => {
     const r = await runCli(["graph", fixture("dev-and-prod")]);
     expect(r.code).toBe(0);

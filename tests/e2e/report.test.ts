@@ -1,8 +1,8 @@
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
-import { buildCli, fixture, runCli, startFakeOsv } from "./helpers";
+import { afterEach, describe, expect, it } from "vitest";
+import { fixture, runCli, startFakeOsv } from "./helpers";
 
 type Fake = Awaited<ReturnType<typeof startFakeOsv>>;
 let fake: Fake | undefined;
@@ -25,8 +25,6 @@ async function scanToJson(name: string, url: string) {
 }
 
 describe("chainwatch report", () => {
-  beforeAll(buildCli, 60_000);
-
   it("renders a saved scan as HTML without looking up advisories again", async () => {
     fake = await startFakeOsv();
     const { r, out } = await scanToJson("vulnerable", fake.url);
