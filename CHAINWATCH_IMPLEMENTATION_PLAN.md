@@ -167,15 +167,15 @@ chainwatch/
 
 ### Module responsibilities
 
-| Module | Responsibility | Must not do |
-|---|---|---|
-| `core` | Orchestrate scans and expose the engine API | Parse CLI arguments or render reports |
-| `lockfile` | Parse lockfiles, normalize packages, construct graphs | Make network requests |
-| `advisories` | Retrieve, cache, normalize, and match vulnerability data | Decide which findings block CI |
-| `risk` | Calculate scores and explain contributing factors | Perform I/O or mutate packages |
-| `policy` | Apply thresholds, allowlists, and failure rules | Change vulnerability scores |
-| `reports` | Render a `ScanResult` | Recalculate risk or query OSV |
-| `cli` | Parse commands, configure execution, map outcomes to exit codes | Duplicate security logic |
+| Module       | Responsibility                                                  | Must not do                           |
+| ------------ | --------------------------------------------------------------- | ------------------------------------- |
+| `core`       | Orchestrate scans and expose the engine API                     | Parse CLI arguments or render reports |
+| `lockfile`   | Parse lockfiles, normalize packages, construct graphs           | Make network requests                 |
+| `advisories` | Retrieve, cache, normalize, and match vulnerability data        | Decide which findings block CI        |
+| `risk`       | Calculate scores and explain contributing factors               | Perform I/O or mutate packages        |
+| `policy`     | Apply thresholds, allowlists, and failure rules                 | Change vulnerability scores           |
+| `reports`    | Render a `ScanResult`                                           | Recalculate risk or query OSV         |
+| `cli`        | Parse commands, configure execution, map outcomes to exit codes | Duplicate security logic              |
 
 ### Tooling defaults (decide once, in the first session)
 
@@ -205,17 +205,17 @@ export interface DependencyNode {
   /** Lockfile path key, e.g. "node_modules/a/node_modules/b". Unique per installed copy. */
   id: string;
   package: PackageId;
-  direct: boolean;     // declared by the root project (or a workspace)
-  dev: boolean;        // reachable only through devDependencies
+  direct: boolean; // declared by the root project (or a workspace)
+  dev: boolean; // reachable only through devDependencies
   optional: boolean;
   peer: boolean;
-  source: "registry" | "non-registry"; // non-registry nodes are skipped from lookup
+  source: "registry" | "workspace" | "non-registry"; // only registry nodes are looked up in OSV
 }
 
 export interface DependencyEdge {
   from: string;
   to: string;
-  range: string;       // declared semver range, kept for remediation hints
+  range: string; // declared semver range, kept for remediation hints
   type: "prod" | "dev" | "optional" | "peer";
 }
 
@@ -247,18 +247,18 @@ export interface AffectedRange {
 }
 
 export interface Advisory {
-  id: string;                 // as returned by OSV
+  id: string; // as returned by OSV
   aliases: string[];
   summary?: string;
-  withdrawn?: string;         // present => drop the advisory
+  withdrawn?: string; // present => drop the advisory
   severity: {
     cvssVectors: { type: string; vector: string }[]; // e.g. CVSS_V3 / CVSS_V4
-    label?: string;           // e.g. database_specific.severity: LOW|MODERATE|HIGH|CRITICAL
+    label?: string; // e.g. database_specific.severity: LOW|MODERATE|HIGH|CRITICAL
   };
   affected: {
     packageName: string;
-    versions: string[];       // explicit affected versions, if listed
-    ranges: AffectedRange[];  // structured, not flattened to strings
+    versions: string[]; // explicit affected versions, if listed
+    ranges: AffectedRange[]; // structured, not flattened to strings
   }[];
   references: string[];
   modifiedAt?: string;
@@ -279,12 +279,12 @@ export interface RiskFactor {
 }
 
 export interface Finding {
-  id: string;                       // hash of package name@version + canonical advisory ID
+  id: string; // hash of package name@version + canonical advisory ID
   package: PackageId;
-  advisoryId: string;               // canonical ID (prefer GHSA, then CVE, then OSV ID)
+  advisoryId: string; // canonical ID (prefer GHSA, then CVE, then OSV ID)
   aliases: string[];
   installedVersion: string;
-  nodeIds: string[];                // every installed copy of this name@version
+  nodeIds: string[]; // every installed copy of this name@version
   direct: boolean;
   dev: boolean;
   upstreamSeverity: {
@@ -293,9 +293,9 @@ export interface Finding {
     source: "cvss-vector" | "label" | "none";
   };
   fixedVersions: string[];
-  suggestedAction: string;          // e.g. "Upgrade X to >=1.2.4" or "Bump direct dependency D / add an override for X"
-  dependencyPaths: string[][];      // shortest N paths only (see below)
-  dependencyPathCount: number;      // total number of paths found
+  suggestedAction: string; // e.g. "Upgrade X to >=1.2.4" or "Bump direct dependency D / add an override for X"
+  dependencyPaths: string[][]; // shortest N paths only (see below)
+  dependencyPathCount: number; // number of shortest paths (counted from BFS layers, not enumerated)
   riskScore: number | null;
   riskLevel: RiskLevel;
   factors: RiskFactor[];
@@ -323,18 +323,18 @@ export interface ScanResult {
   coverage: {
     packagesScanned: number;
     queried: number;
-    failed: number;      // lookups that errored
-    skipped: number;     // non-registry packages etc.
+    failed: number; // lookups that errored
+    skipped: number; // non-registry packages etc.
   };
   advisoryData: {
     provider: "osv";
     freshLookups: number;
     cacheHits: number;
-    staleCacheHits: number;     // offline use beyond TTL
+    staleCacheHits: number; // offline use beyond TTL
     oldestFetchedAt?: string;
   };
   findings: Finding[];
-  policy?: PolicyResult;        // present when policy was evaluated
+  policy?: PolicyResult; // present when policy was evaluated
   errors: {
     code: string;
     message: string;
@@ -354,10 +354,10 @@ The MVP uses a deterministic, documented prioritization heuristic, not an opaque
 
 A 0–100 score from two scored factors; remediation is shown, not scored.
 
-| Factor | Initial weight | Value (0–100) |
-|---|---:|---|
-| Advisory severity | 80% | `cvssScore * 10`. If only a label exists: CRITICAL=95, HIGH=80, MODERATE=55, LOW=20 (documented fallback). |
-| Runtime exposure | 20% | Production dependency = 100, optional = 60, dev-only = 40. |
+| Factor            | Initial weight | Value (0–100)                                                                                              |
+| ----------------- | -------------: | ---------------------------------------------------------------------------------------------------------- |
+| Advisory severity |            80% | `cvssScore * 10`. If only a label exists: CRITICAL=95, HIGH=80, MODERATE=55, LOW=20 (documented fallback). |
+| Runtime exposure  |            20% | Production dependency = 100, optional = 60, dev-only = 40.                                                 |
 
 `risk = 0.80 * severity + 0.20 * exposure`
 
@@ -415,13 +415,13 @@ The example is illustrative. Actual findings and scores must be derived from adv
 
 Keep the command surface small and each command focused.
 
-| Command | Purpose |
-|---|---|
-| `chainwatch scan .` | Scan a repository |
-| `chainwatch scan . --format json\|html\|sarif` | Emit a machine-readable or standalone report |
-| `chainwatch explain <package> [--input scan.json]` | Explain findings and dependency paths for a package. With `--input`, reads a saved scan; otherwise runs a scan in memory. |
-| `chainwatch report --input scan.json --format html` | Render an existing scan result without re-querying |
-| `chainwatch --version` | Print the installed version |
+| Command                                             | Purpose                                                                                                                   |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `chainwatch scan .`                                 | Scan a repository                                                                                                         |
+| `chainwatch scan . --format json\|html\|sarif`      | Emit a machine-readable or standalone report                                                                              |
+| `chainwatch explain <package> [--input scan.json]`  | Explain findings and dependency paths for a package. With `--input`, reads a saved scan; otherwise runs a scan in memory. |
+| `chainwatch report --input scan.json --format html` | Render an existing scan result without re-querying                                                                        |
+| `chainwatch --version`                              | Print the installed version                                                                                               |
 
 Examples:
 
@@ -442,12 +442,12 @@ Options:
 
 ### Exit codes
 
-| Code | Meaning |
-|---:|---|
-| `0` | Scan complete and policy passed |
-| `1` | Scan complete but security policy failed |
-| `2` | Invalid arguments or configuration |
-| `3` | Scan `partial` or `failed` due to operational errors (takes precedence over `1`) |
+| Code | Meaning                                                                          |
+| ---: | -------------------------------------------------------------------------------- |
+|  `0` | Scan complete and policy passed                                                  |
+|  `1` | Scan complete but security policy failed                                         |
+|  `2` | Invalid arguments or configuration                                               |
+|  `3` | Scan `partial` or `failed` due to operational errors (takes precedence over `1`) |
 
 Exit `3` takes precedence over `1` so an incomplete scan is never reported as a normal policy result. The JSON output still contains all findings and the policy result, so nothing is hidden. CI users must be able to tell whether their code failed a security check or the security check itself failed.
 
@@ -478,7 +478,7 @@ risk:
 
 policy:
   failOn: high
-  unknownSeverity: report   # report | fail
+  unknownSeverity: report # report | fail
   ignore: []
 ```
 
