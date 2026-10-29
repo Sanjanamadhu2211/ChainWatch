@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
 import semver from "semver";
+import { normalizeSeverity } from "../advisories/cvss";
 import { fixedVersionsFor } from "../advisories/matching";
 import { indexGraph, shortestPaths, type GraphIndex } from "../lockfile/graph";
+import { rankFindings } from "../risk/ranking";
+import { scoreFinding, type RiskWeights } from "../risk/scoring";
 import type { Advisory, DependencyGraph, DependencyNode, Finding } from "./types";
 
 /** An installed name@version (possibly in several places) and the advisories OSV reported for it. */
@@ -58,6 +61,7 @@ export function suggestAction(
 export function buildFindings(
   graph: DependencyGraph,
   affected: Iterable<AffectedPackage>,
+  weights: RiskWeights,
 ): Finding[] {
   const index: GraphIndex = indexGraph(graph);
   const findings: Finding[] = [];
@@ -78,6 +82,10 @@ export function buildFindings(
       ].sort(semver.compare);
       const summary = group.find((a) => a.summary)?.summary;
 
+      const dev = nodes.every((n) => n.dev);
+      const optional = nodes.every((n) => n.optional);
+      const upstreamSeverity = normalizeSeverity(group);
+
       findings.push({
         id: createHash("sha256")
           .update(`${pkg.name}@${pkg.version}|${advisoryId}`)
@@ -90,25 +98,18 @@ export function buildFindings(
         installedVersion: pkg.version,
         nodeIds,
         direct,
-        dev: nodes.every((n) => n.dev),
-        optional: nodes.every((n) => n.optional),
-        upstreamSeverity: { source: "none" },
+        dev,
+        optional,
+        upstreamSeverity,
         fixedVersions,
         suggestedAction: suggestAction(pkg.name, fixedVersions, via),
         dependencyPaths: paths,
         dependencyPathCount: count,
-        riskScore: null,
-        riskLevel: "unknown",
-        factors: [],
+        ...scoreFinding({ upstreamSeverity, dev, optional }, weights),
         references: [...new Set(group.flatMap((a) => a.references))],
       });
     }
   }
 
-  return findings.sort(
-    (a, b) =>
-      a.package.name.localeCompare(b.package.name) ||
-      semver.compare(a.package.version, b.package.version) ||
-      a.advisoryId.localeCompare(b.advisoryId),
-  );
+  return rankFindings(findings);
 }

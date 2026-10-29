@@ -146,7 +146,7 @@ export async function runScan(options: ScanOptions): Promise<ScanResult> {
     if (found.length > 0)
       affected.push({ nodes: groups.get(key) as DependencyNode[], advisories: found });
   }
-  const findings = buildFindings(graph, affected);
+  const findings = buildFindings(graph, affected, project.config.risk.weights);
 
   if (!offline && !(await cache.save(startedAt))) {
     warnings.push("The advisory cache could not be written; the next scan will query OSV again.");
