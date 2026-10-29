@@ -7,6 +7,12 @@
   "bin": {
     "chainwatch": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "chainwatch.example.yaml"
+  ],
   "engines": {
     "node": ">=22"
   },
