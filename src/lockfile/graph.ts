@@ -32,6 +32,18 @@ export function indexGraph(graph: DependencyGraph): GraphIndex {
   return { graph, nodes, children, parents };
 }
 
+/** Drops dev-only packages and every edge that touches them. */
+export function withoutDev(graph: DependencyGraph): DependencyGraph {
+  const nodes = graph.nodes.filter((n) => !n.dev);
+  const kept = new Set(nodes.map((n) => n.id));
+  kept.add(ROOT_ID);
+  return {
+    ...graph,
+    nodes,
+    edges: graph.edges.filter((e) => kept.has(e.from) && kept.has(e.to)),
+  };
+}
+
 export interface PathsResult {
   /** Up to `max` shortest paths, as "name@version" labels starting with the project name. */
   paths: string[][];
