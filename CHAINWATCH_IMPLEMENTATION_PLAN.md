@@ -681,6 +681,8 @@ Status: done for policy and CI; SARIF skipped (stretch, dropped first). `scan` g
 - Test clean installation and package distribution.
 - Publish a tagged release, demo, and complete README.
 
+Status: partly done. Written: `README.md`, `docs/threat-model.md`, `docs/architecture.md`, `docs/risk-scoring.md` (covers scoring methodology and limitations). Clean install checked on a `git archive HEAD` copy in a new empty directory: `npm ci`, `npm run check` (19 files, 197 tests), `npm run build`, the built bin runs, and `npm pack --dry-run`. The check found the package shipped sources, tests and the plan, so `package.json` now has a `files` allowlist (dist, README, LICENSE, example config; 5 files, 20.9 kB). A tarball installed in a fresh project runs `chainwatch --version` and an offline scan. Not done: the benchmark (not in this phase's brief, so skipped), the demo, and the tagged release. Publish, tag and release were excluded on purpose. `package.json` still has `"private": true`, so nothing can be published until that is removed by the owner.
+
 **Exit criterion:** A reproducible open-source release with a defensible demo and measurable evaluation.
 
 ### Working agreement for every phase
