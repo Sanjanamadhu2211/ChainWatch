@@ -658,6 +658,8 @@ Build in dependency order. Do not build reports before the scan result model exi
 - Add HTML escaping/CSP and terminal sanitization with their tests.
 - Validate reports against vulnerable and patched fixtures.
 
+Status: done. `scan --format terminal|json|html --output <file>` writes reports. `chainwatch report --input scan.json [--format] [--output]` renders a saved scan with no new advisory lookups. `chainwatch explain <package> --input scan.json` explains a package from a saved scan. Saved files are validated against the zod schema (`docs/schema/scan-result.schema.json`, generated), so unknown or malformed input exits 2. Partial scans still exit 3 and are labelled "NOT a clean result" in every format. SARIF is not started (Phase 5 stretch).
+
 **Exit criterion:** A developer can use the scanner locally and export usable reports without a hosted service.
 
 ### Phase 5 — CI and policy
