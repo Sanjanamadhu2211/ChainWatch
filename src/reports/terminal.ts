@@ -1,15 +1,5 @@
 import type { Finding, ScanResult } from "../core/types";
-
-/** Escapes control characters so advisory and package text cannot change the terminal. */
-function printable(line: string): string {
-  return line.replace(/\p{Cc}/gu, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`);
-}
-
-function riskTag(f: Pick<Finding, "riskLevel" | "riskScore">): string {
-  return f.riskScore === null
-    ? "UNKNOWN (no score)"
-    : `${f.riskLevel.toUpperCase()} (score ${f.riskScore})`;
-}
+import { printable, problemLines, riskTag } from "./text";
 
 function renderFinding(f: Finding): string[] {
   const lines = [
@@ -47,17 +37,6 @@ function renderExplanation(f: Finding): string[] {
   for (const path of f.dependencyPaths) lines.push(`  ${path.join(" -> ")}`);
   lines.push("", "Recommended action:", `  ${f.suggestedAction}`);
   lines.push("", "Limitations:", "  Runtime reachability has not been evaluated.");
-  return lines;
-}
-
-function problemLines(result: ScanResult): string[] {
-  const lines = [
-    ...result.warnings.map((w) => `warning: ${w}`),
-    ...result.errors.map((e) => `error [${e.code}]: ${e.message}`),
-  ];
-  if (result.status !== "complete") {
-    lines.push("", `The scan is ${result.status}: this is NOT a clean result.`);
-  }
   return lines;
 }
 
