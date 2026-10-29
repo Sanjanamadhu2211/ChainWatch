@@ -5,6 +5,7 @@ import { graphCommand } from "./commands/graph";
 import { reportCommand } from "./commands/report";
 import { scanCommand } from "./commands/scan";
 import { REPORT_FORMATS } from "../reports/render";
+import { FAIL_ON_LEVELS } from "../policy/evaluate";
 
 const formatOption = () =>
   new Option("--format <format>", "output format").choices(REPORT_FORMATS).default("terminal");
@@ -25,6 +26,11 @@ export function buildProgram(): Command {
     .option("--offline", "use cached advisory data only")
     .option("--no-cache", "bypass the advisory cache")
     .option("--verbose", "print diagnostics to stderr")
+    .addOption(
+      new Option("--fail-on <level>", "lowest risk level that fails the scan").choices(
+        FAIL_ON_LEVELS,
+      ),
+    )
     .addOption(formatOption())
     .option("--output <file>", "write the report to a file instead of stdout")
     .action(async (path, options) => {
