@@ -670,6 +670,8 @@ Status: done. `scan --format terminal|json|html --output <file>` writes reports.
 - Stretch: SARIF output for GitHub code scanning.
 - Run security and regression tests in CI.
 
+Status: done for policy and CI; SARIF skipped (stretch, dropped first). `scan` gates on `policy.failOn` (default `high`, override with `--fail-on critical|high|medium|low|none`). `none` means the policy is not gating and the line says so. `unknownSeverity: fail` fails findings with no score. Exceptions in `policy.ignore` hide a finding through its expiry day; after that the finding counts again and a warning is printed. Exit codes: 0 pass, 1 policy failed, 2 bad arguments or config, 3 partial or failed scan (outranks 1). `report --input` renders a saved scan and does not gate on policy, so it exits 0 or 3 only. `explain <package> --input scan.json` already works from a saved scan (no new code needed). `.github/workflows/ci.yml` runs `npm run check` and `npm run build`, then a policy scan of the lockfile with the JSON uploaded as an artifact.
+
 **Exit criterion:** A repository can enforce Chainwatch policy in a pull-request workflow.
 
 ### Phase 6 — Release quality
