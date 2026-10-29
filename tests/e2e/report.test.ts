@@ -30,7 +30,7 @@ describe("chainwatch report", () => {
   it("renders a saved scan as HTML without looking up advisories again", async () => {
     fake = await startFakeOsv();
     const { r, out } = await scanToJson("vulnerable", fake.url);
-    expect(r.code).toBe(0);
+    expect(r.code).toBe(1);
     expect(r.stdout).toBe("");
     expect(JSON.parse(await readFile(out, "utf8")).findings).toHaveLength(8);
 
@@ -40,6 +40,7 @@ describe("chainwatch report", () => {
     });
     expect(html.code).toBe(0);
     expect(html.stdout).toContain("8 finding(s)");
+    expect(html.stdout).toContain("Policy: failed at fail-on high; 6 finding(s) fail the policy.");
     expect(html.stdout).toContain("Fixed in: 4.17.21");
     expect(html.stdout).toContain("Content-Security-Policy");
     expect(fake.requests).toHaveLength(before);
@@ -71,7 +72,7 @@ describe("chainwatch report", () => {
   it("drops the advisory that lodash 4.17.21 fixes and shows the newer fix versions", async () => {
     fake = await startFakeOsv();
     const { r, out } = await scanToJson("patched", fake.url);
-    expect(r.code).toBe(0);
+    expect(r.code).toBe(1);
     const report = await runCli(["report", "--input", out]);
     expect(report.code).toBe(0);
     expect(report.stdout).not.toContain("GHSA-35jh-r3h4-6jhm");
