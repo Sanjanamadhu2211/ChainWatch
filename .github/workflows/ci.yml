@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch makes the older run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Typecheck and lint
+        run: npm run check
+      - name: Build the CLI
+        run: npm run build
+
+  scan:
+    # Example policy gate: scans this repository's lockfile and fails the job
+    # when a finding reaches the fail-on level (exit 1), or when the scan is not
+    # complete (exit 3). The JSON report is kept as a build artifact either way.
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Scan the lockfile
+        run: node dist/index.js scan . --format json --output scan.json
+      - name: Upload the scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chainwatch-scan
+          path: scan.json
+          if-no-files-found: warn

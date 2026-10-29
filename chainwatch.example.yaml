@@ -1,0 +1,25 @@
+version: 1
+
+scan:
+  lockfiles:
+    - package-lock.json
+  includeDevDependencies: true
+
+advisories:
+  provider: osv
+  cacheTtlSeconds: 3600
+
+risk:
+  weights:
+    severity: 0.8
+    exposure: 0.2
+
+policy:
+  failOn: high # critical | high | medium | low | none
+  unknownSeverity: report # report | fail
+  ignore: []
+  # Exceptions need an advisory id (GHSA, CVE or OSV id), a reason and an expiry date.
+  # ignore:
+  #   - advisoryId: GHSA-xxxx-yyyy-zzzz
+  #     reason: "Tracked upstream issue; temporary exception"
+  #     expires: "2026-12-31"
