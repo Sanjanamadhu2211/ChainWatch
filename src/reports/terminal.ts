@@ -1,28 +1,32 @@
 import type { Finding, ScanResult } from "../core/types";
-import { policyLines, printable, problemLines, riskTag } from "./text";
+import {
+  advisoryDataText,
+  aliasText,
+  coverageText,
+  fixedText,
+  morePathsText,
+  noFindingsText,
+  policyLines,
+  printable,
+  problemLines,
+  riskTag,
+} from "./text";
 
 function renderFinding(f: Finding): string[] {
   const lines = [
-    `${riskTag(f)}  ${f.package.name}@${f.package.version}  ${f.advisoryId}${f.aliases.length ? ` (${f.aliases.join(", ")})` : ""}`,
+    `${riskTag(f)}  ${f.package.name}@${f.package.version}  ${f.advisoryId}${aliasText(f)}`,
   ];
   if (f.summary) lines.push(`  ${f.summary}`);
   const path = f.dependencyPaths[0];
-  if (path)
-    lines.push(
-      `  Path: ${path.join(" -> ")}${f.dependencyPathCount > 1 ? ` (+${f.dependencyPathCount - 1} more)` : ""}`,
-    );
-  lines.push(
-    `  Fixed in: ${f.fixedVersions.length ? f.fixedVersions.join(", ") : "no fixed version listed"}`,
-  );
-  lines.push(`  Action: ${f.suggestedAction}`);
+  if (path) lines.push(`  Path: ${path.join(" -> ")}${morePathsText(f)}`);
+  lines.push(`  Fixed in: ${fixedText(f)}`, `  Action: ${f.suggestedAction}`);
   return lines;
 }
 
 function renderExplanation(f: Finding): string[] {
-  const aliases = f.aliases.length ? ` (${f.aliases.join(", ")})` : "";
   const lines = [
     `${riskTag(f)} - ${f.package.name}@${f.package.version}`,
-    `Advisory: ${f.advisoryId}${aliases}`,
+    `Advisory: ${f.advisoryId}${aliasText(f)}`,
   ];
   if (f.summary) lines.push(`Summary: ${f.summary}`);
   lines.push("", "Why it is prioritized:");
@@ -41,20 +45,9 @@ function renderExplanation(f: Finding): string[] {
 }
 
 export function renderTerminal(result: ScanResult): string {
-  const { coverage, advisoryData } = result;
-  const out = [
-    `Checked ${coverage.queried} of ${coverage.packagesScanned} installed packages ` +
-      `(${coverage.skipped} skipped, ${coverage.failed} could not be checked)`,
-    `Advisory data: ${advisoryData.freshLookups} fetched from OSV, ${advisoryData.cacheHits} from cache` +
-      (advisoryData.staleCacheHits ? ` (${advisoryData.staleCacheHits} past their TTL)` : ""),
-    "",
-  ];
+  const out = [coverageText(result), advisoryDataText(result), ""];
   if (result.findings.length === 0) {
-    out.push(
-      result.status === "complete"
-        ? "No known vulnerabilities found."
-        : "No vulnerabilities found in the packages that were checked.",
-    );
+    out.push(noFindingsText(result));
   } else {
     out.push(`${result.findings.length} finding(s):`, "");
     for (const f of result.findings) out.push(...renderFinding(f), "");

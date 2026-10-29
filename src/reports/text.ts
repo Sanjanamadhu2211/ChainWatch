@@ -11,6 +11,43 @@ export function riskTag(f: Pick<Finding, "riskLevel" | "riskScore">): string {
     : `${f.riskLevel.toUpperCase()} (score ${f.riskScore})`;
 }
 
+/** " (GHSA-x, CVE-y)" after an advisory id, or nothing when there are no aliases. */
+export function aliasText(f: Pick<Finding, "aliases">): string {
+  return f.aliases.length ? ` (${f.aliases.join(", ")})` : "";
+}
+
+export function fixedText(f: Pick<Finding, "fixedVersions">): string {
+  return f.fixedVersions.length ? f.fixedVersions.join(", ") : "no fixed version listed";
+}
+
+/** " (+2 more)" when the package is reached by more paths than the one shown. */
+export function morePathsText(f: Pick<Finding, "dependencyPathCount">): string {
+  return f.dependencyPathCount > 1 ? ` (+${f.dependencyPathCount - 1} more)` : "";
+}
+
+export function coverageText(result: ScanResult): string {
+  const { packagesScanned, queried, skipped, failed } = result.coverage;
+  return (
+    `Checked ${queried} of ${packagesScanned} installed packages ` +
+    `(${skipped} skipped, ${failed} could not be checked)`
+  );
+}
+
+export function advisoryDataText(result: ScanResult): string {
+  const { freshLookups, cacheHits, staleCacheHits } = result.advisoryData;
+  return (
+    `Advisory data: ${freshLookups} fetched from OSV, ${cacheHits} from cache` +
+    (staleCacheHits ? ` (${staleCacheHits} past their TTL)` : "")
+  );
+}
+
+/** Says so when the scan did not check everything, since silence would look like a clean result. */
+export function noFindingsText(result: ScanResult): string {
+  return result.status === "complete"
+    ? "No known vulnerabilities found."
+    : "No vulnerabilities found in the packages that were checked.";
+}
+
 /** The policy decision. Empty for saved scans that predate policy. */
 export function policyLines(result: ScanResult): string[] {
   const p = result.policy;

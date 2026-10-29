@@ -1,5 +1,16 @@
 import type { Finding, ScanResult } from "../core/types";
-import { policyLines, printable, problemLines, riskTag } from "./text";
+import {
+  advisoryDataText,
+  aliasText,
+  coverageText,
+  fixedText,
+  morePathsText,
+  noFindingsText,
+  policyLines,
+  printable,
+  problemLines,
+  riskTag,
+} from "./text";
 
 const ENTITY: Record<string, string> = {
   "&": "&amp;",
@@ -28,18 +39,16 @@ function reference(ref: string): string {
 }
 
 function renderFinding(f: Finding): string {
-  const aliases = f.aliases.length ? ` (${esc(f.aliases.join(", "))})` : "";
   const path = f.dependencyPaths[0];
-  const more = f.dependencyPathCount > 1 ? ` (+${f.dependencyPathCount - 1} more)` : "";
   const refs = f.references.length
     ? `<ul class="refs">${f.references.map((r) => `<li>${reference(r)}</li>`).join("")}</ul>`
     : "";
   return [
     `<article class="finding ${esc(f.riskLevel)}">`,
-    `<h3>${esc(riskTag(f))} &middot; ${esc(f.package.name)}@${esc(f.package.version)} &middot; ${esc(f.advisoryId)}${aliases}</h3>`,
+    `<h3>${esc(riskTag(f))} &middot; ${esc(f.package.name)}@${esc(f.package.version)} &middot; ${esc(f.advisoryId)}${esc(aliasText(f))}</h3>`,
     f.summary ? `<p>${esc(f.summary)}</p>` : "",
-    path ? `<p>Path: <code>${esc(path.join(" -> "))}</code>${esc(more)}</p>` : "",
-    `<p>Fixed in: ${esc(f.fixedVersions.length ? f.fixedVersions.join(", ") : "no fixed version listed")}</p>`,
+    path ? `<p>Path: <code>${esc(path.join(" -> "))}</code>${esc(morePathsText(f))}</p>` : "",
+    `<p>Fixed in: ${esc(fixedText(f))}</p>`,
     `<p>Action: ${esc(f.suggestedAction)}</p>`,
     refs,
     "</article>",
@@ -47,14 +56,9 @@ function renderFinding(f: Finding): string {
 }
 
 export function renderHtml(result: ScanResult): string {
-  const { coverage, advisoryData } = result;
   const findings =
     result.findings.length === 0
-      ? `<p>${
-          result.status === "complete"
-            ? "No known vulnerabilities found."
-            : "No vulnerabilities found in the packages that were checked."
-        }</p>`
+      ? `<p>${noFindingsText(result)}</p>`
       : `<p>${result.findings.length} finding(s):</p>\n${result.findings.map(renderFinding).join("\n")}`;
   const policy = policyLines(result);
   const problems = problemLines(result);
@@ -78,8 +82,8 @@ code { word-break: break-all; }
 <body>
 <h1>chainwatch scan report</h1>
 <p>Status: <strong>${esc(result.status)}</strong></p>
-<p>Checked ${coverage.queried} of ${coverage.packagesScanned} installed packages (${coverage.skipped} skipped, ${coverage.failed} could not be checked).</p>
-<p>Advisory data: ${advisoryData.freshLookups} fetched from OSV, ${advisoryData.cacheHits} from cache${advisoryData.staleCacheHits ? ` (${advisoryData.staleCacheHits} past their TTL)` : ""}.</p>
+<p>${coverageText(result)}.</p>
+<p>${advisoryDataText(result)}.</p>
 ${findings}
 ${policy.length ? `<section class="policy">${policy.map((l) => `<p>${esc(l)}</p>`).join("")}</section>` : ""}
 ${problems.length ? `<section class="problems">${problems.map((l) => `<p>${esc(l)}</p>`).join("")}</section>` : ""}
