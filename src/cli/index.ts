@@ -5,7 +5,7 @@ import { buildProgram } from "./cli";
 async function main(): Promise<number> {
   try {
     await buildProgram().parseAsync(process.argv);
-    return 0;
+    return Number(process.exitCode ?? 0);
   } catch (e) {
     // Commander already printed usage problems; help and --version are not failures.
     if (e instanceof CommanderError) return e.exitCode === 0 ? 0 : 2;
