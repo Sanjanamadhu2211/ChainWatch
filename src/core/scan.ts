@@ -3,6 +3,7 @@ import pkg from "../../package.json";
 import { AdvisoryCache, defaultCacheDir, type CacheEntry } from "../advisories/cache";
 import { OsvClient } from "../advisories/osv-client";
 import { packageKey, type AdvisoryProvider } from "../advisories/provider";
+import { evaluatePolicy, type FailOn } from "../policy/evaluate";
 import { buildFindings, type AffectedPackage } from "./findings";
 import { loadProject } from "./project";
 import type { Advisory, DependencyNode, ScanError, ScanResult } from "./types";
@@ -16,6 +17,8 @@ export interface ScanOptions {
   noCache?: boolean;
   provider?: AdvisoryProvider;
   cacheDir?: string;
+  /** Overrides the configured failOn level (the --fail-on flag). */
+  failOn?: FailOn;
   now?: () => Date;
   /** Diagnostics for --verbose. Written by the caller to stderr so reports stay machine-readable. */
   log?: (message: string) => void;
@@ -23,7 +26,10 @@ export interface ScanOptions {
 
 const MAX_NAMES_IN_MESSAGE = 10;
 
-/** Runs a full scan and returns the normalized result. Never decides pass/fail; that is policy. */
+/**
+ * Runs a full scan and returns the normalized result, including the policy decision.
+ * The CLI maps the result to an exit code.
+ */
 export async function runScan(options: ScanOptions): Promise<ScanResult> {
   const now = options.now ?? (() => new Date());
   const startedAt = now();
@@ -147,6 +153,10 @@ export async function runScan(options: ScanOptions): Promise<ScanResult> {
       affected.push({ nodes: groups.get(key) as DependencyNode[], advisories: found });
   }
   const findings = buildFindings(graph, affected, project.config.risk.weights);
+  const policy = evaluatePolicy(findings, project.config.policy, {
+    failOn: options.failOn ?? project.config.policy.failOn,
+    now: startedAt,
+  });
 
   if (!offline && !(await cache.save(startedAt))) {
     warnings.push("The advisory cache could not be written; the next scan will query OSV again.");
@@ -170,6 +180,7 @@ export async function runScan(options: ScanOptions): Promise<ScanResult> {
       ...(cacheHits > 0 ? { oldestFetchedAt: oldest.toISOString() } : {}),
     },
     findings,
+    policy,
     warnings,
     errors: summarizeFailures(failures),
   };
