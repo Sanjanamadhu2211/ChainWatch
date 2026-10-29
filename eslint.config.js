@@ -17,6 +17,10 @@ const forbid = (...dirs) => ({
 export default tseslint.config(
   { ignores: ["dist", "node_modules", "tests/fixtures", "coverage"] },
   js.configs.recommended,
+  {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: { globals: { URL: "readonly", fetch: "readonly", console: "readonly" } },
+  },
   ...tseslint.configs.recommended,
   { files: ["src/lockfile/**"], rules: forbid("cli", "reports", "advisories", "risk", "policy") },
   { files: ["src/advisories/**"], rules: forbid("cli", "reports", "lockfile", "risk", "policy") },
