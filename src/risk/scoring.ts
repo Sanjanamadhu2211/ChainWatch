@@ -5,10 +5,10 @@ export interface RiskWeights {
   exposure: number;
 }
 
-export const DEFAULT_WEIGHTS: RiskWeights = { severity: 0.8, exposure: 0.2 };
+const DEFAULT_WEIGHTS: RiskWeights = { severity: 0.8, exposure: 0.2 };
 
 /** 0 to 100 severity values used when an advisory only carries a label, not a CVSS vector. */
-export const LABEL_SEVERITY: Record<string, number> = {
+const LABEL_SEVERITY: Record<string, number> = {
   CRITICAL: 95,
   HIGH: 80,
   MODERATE: 55,
@@ -17,17 +17,17 @@ export const LABEL_SEVERITY: Record<string, number> = {
 };
 
 // Initial thresholds; calibrate against real scans and document in docs/risk-scoring.md.
-export const LEVEL_THRESHOLDS = { critical: 90, high: 70, medium: 40 } as const;
+const LEVEL_THRESHOLDS = { critical: 90, high: 70, medium: 40 } as const;
 
-export function riskLevelFor(score: number): Exclude<RiskLevel, "unknown"> {
+function riskLevelFor(score: number): Exclude<RiskLevel, "unknown"> {
   if (score >= LEVEL_THRESHOLDS.critical) return "critical";
   if (score >= LEVEL_THRESHOLDS.high) return "high";
   if (score >= LEVEL_THRESHOLDS.medium) return "medium";
   return "low";
 }
 
-export type RiskInput = Pick<Finding, "upstreamSeverity" | "dev" | "optional">;
-export type RiskResult = Pick<Finding, "riskScore" | "riskLevel" | "factors">;
+type RiskInput =Pick<Finding, "upstreamSeverity" | "dev" | "optional">;
+type RiskResult =Pick<Finding, "riskScore" | "riskLevel" | "factors">;
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 

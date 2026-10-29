@@ -2,7 +2,7 @@ import { loadProject } from "../../core/project";
 import { indexGraph, nodeLabel } from "../../lockfile/graph";
 import { ROOT_ID, type DependencyNode } from "../../core/types";
 
-export interface GraphOptions {
+interface GraphOptions {
   config?: string;
 }
 

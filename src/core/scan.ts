@@ -8,7 +8,7 @@ import { buildFindings, type AffectedPackage } from "./findings";
 import { loadProject } from "./project";
 import type { Advisory, DependencyNode, ScanError, ScanResult } from "./types";
 
-export interface ScanOptions {
+interface ScanOptions {
   path: string;
   configPath?: string;
   /** Use only cached advisory data; never touch the network. */

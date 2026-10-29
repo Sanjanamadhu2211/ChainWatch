@@ -17,7 +17,7 @@ const date = z
 const weight = z.number().min(0).max(1);
 
 // Every object is strict: a typo such as `falOn` is an error, never a silently ignored setting.
-export const configSchema = z.strictObject({
+const configSchema = z.strictObject({
   version: z.literal(1),
   scan: z
     .strictObject({
@@ -58,9 +58,9 @@ export const configSchema = z.strictObject({
 
 export type Config = z.infer<typeof configSchema>;
 
-export const DEFAULT_CONFIG_NAMES = ["chainwatch.yaml", "chainwatch.yml"];
+const DEFAULT_CONFIG_NAMES = ["chainwatch.yaml", "chainwatch.yml"];
 
-export function parseConfig(text: string, source = "configuration"): Config {
+function parseConfig(text: string, source = "configuration"): Config {
   let raw: unknown;
   try {
     raw = parseYaml(text);
@@ -75,7 +75,7 @@ export function parseConfig(text: string, source = "configuration"): Config {
   return result.data;
 }
 
-export function defaultConfig(): Config {
+function defaultConfig(): Config {
   return configSchema.parse({ version: 1 });
 }
 

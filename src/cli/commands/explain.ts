@@ -3,7 +3,7 @@ import { readScanResult } from "../../reports/schema";
 import { renderExplain } from "../../reports/terminal";
 import { runProjectScan, type ScanCommandOptions } from "./scan";
 
-export interface PackageSpec {
+interface PackageSpec {
   name: string;
   version?: string;
 }

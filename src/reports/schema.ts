@@ -36,7 +36,7 @@ const finding = z.strictObject({
 });
 
 /** The contract for scan.json. Committed as docs/schema/scan-result.schema.json. */
-export const scanResultSchema: z.ZodType<ScanResult> = z.strictObject({
+const scanResultSchema: z.ZodType<ScanResult> = z.strictObject({
   schemaVersion: z.literal("1.0"),
   toolVersion: z.string(),
   scanId: z.string(),

@@ -9,7 +9,7 @@ import {
 } from "../core/types";
 
 /** Lockfiles above this size are rejected before parsing. */
-export const MAX_LOCKFILE_BYTES = 50 * 1024 * 1024;
+const MAX_LOCKFILE_BYTES = 50 * 1024 * 1024;
 
 const depMap = z.record(z.string(), z.string()).optional();
 
@@ -66,7 +66,7 @@ export async function readNpmLockfile(path: string): Promise<ParsedLockfile> {
   return parseNpmLockfile(await readFile(path, "utf8"));
 }
 
-export function parseNpmLockfile(text: string): ParsedLockfile {
+function parseNpmLockfile(text: string): ParsedLockfile {
   let json: unknown;
   try {
     json = JSON.parse(text);

@@ -12,7 +12,7 @@ export interface ScanCommandOptions {
   failOn?: FailOn;
 }
 
-export interface ScanOutputOptions {
+interface ScanOutputOptions {
   format: ReportFormat;
   output?: string;
 }
@@ -33,7 +33,7 @@ export function runProjectScan(path: string, options: ScanCommandOptions): Promi
 }
 
 /** An incomplete scan outranks a policy failure: 3 means the result cannot be trusted either way. */
-export function exitCodeFor(result: ScanResult): number {
+function exitCodeFor(result: ScanResult): number {
   if (result.status !== "complete") return 3;
   return result.policy?.passed === false ? 1 : 0;
 }

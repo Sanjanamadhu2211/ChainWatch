@@ -18,7 +18,7 @@ function roundUp(x: number): number {
  * Base score (0 to 10) of a CVSS v3.0 or v3.1 vector, or undefined if the vector is not a
  * complete, valid v3 vector. CVSS v4 and v2 are not supported.
  */
-export function cvssV3BaseScore(vector: string): number | undefined {
+function cvssV3BaseScore(vector: string): number | undefined {
   const parts = vector.split("/");
   if (parts[0] !== "CVSS:3.0" && parts[0] !== "CVSS:3.1") return undefined;
   const m = new Map<string, string>();
