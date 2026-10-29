@@ -18,7 +18,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Typecheck, lint and tests (including end-to-end)
+      - name: Typecheck and lint
         run: npm run check
       - name: Build the CLI
         run: npm run build

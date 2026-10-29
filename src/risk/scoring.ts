@@ -16,7 +16,7 @@ export const LABEL_SEVERITY: Record<string, number> = {
   LOW: 20,
 };
 
-// Initial thresholds; calibrate against fixtures and document in docs/risk-scoring.md.
+// Initial thresholds; calibrate against real scans and document in docs/risk-scoring.md.
 export const LEVEL_THRESHOLDS = { critical: 90, high: 70, medium: 40 } as const;
 
 export function riskLevelFor(score: number): Exclude<RiskLevel, "unknown"> {

@@ -1,2 +1,0 @@
-{ "name": "multi-version-app", "version": "1.0.0", "private": true,
-  "dependencies": { "semver": "7.5.4", "semver-old": "npm:semver@5.7.2" } }

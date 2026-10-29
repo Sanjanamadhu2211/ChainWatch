@@ -87,14 +87,6 @@ input file. Errors that have a code (`ChainwatchError` subclasses such as `Confi
 ## Output contracts
 
 - The JSON result is `schemaVersion: "1.0"`. The schema at `docs/schema/scan-result.schema.json`
-  is generated from `scanResultSchema`. A test fails if the committed file is out of date, and
-  `UPDATE_SCHEMA=1 npx vitest run tests/unit/scan-result-schema.test.ts` regenerates it.
+  is generated from `scanResultSchema` with `z.toJSONSchema`. Regenerate it by hand when the
+  schema changes; nothing checks that it is up to date.
 - The HTML report is one file with no scripts. Its security rules are in `docs/threat-model.md`.
-
-## Testing layout
-
-- `tests/unit`: per-module tests (scoring, matching, policy, cache, renderers, schema).
-- `tests/e2e`: builds the CLI and runs it against a fake OSV server (`tests/e2e/helpers.ts`)
-  that replays recorded responses from `tests/fixtures/osv`. No network access is needed.
-- `npm run check` runs typecheck, lint, and the full suite, including the end-to-end tests.
-  CI runs it on every push to `dev` and `main`.

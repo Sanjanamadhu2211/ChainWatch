@@ -15,7 +15,7 @@ const forbid = (...dirs) => ({
 });
 
 export default tseslint.config(
-  { ignores: ["dist", "node_modules", "tests/fixtures", "coverage"] },
+  { ignores: ["dist", "node_modules", "coverage"] },
   js.configs.recommended,
   {
     files: ["scripts/**/*.mjs"],

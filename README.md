@@ -92,13 +92,10 @@ network request. Details are in `docs/threat-model.md`.
 ## Development
 
 ```sh
-npm run check    # typecheck, lint and the full test suite, including end-to-end tests
+npm run check    # typecheck and lint
 npm run build    # bundles dist/index.js with tsup
 npm run format   # prettier --write
 ```
-
-The end-to-end tests build the CLI and run it against a fake OSV server that replays
-recorded responses, so they need no network access.
 
 ## Documentation
 
