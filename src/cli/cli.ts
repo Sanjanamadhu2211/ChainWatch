@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import pkg from "../../package.json";
+import { explainCommand } from "./commands/explain";
 import { graphCommand } from "./commands/graph";
 import { scanCommand } from "./commands/scan";
 
@@ -21,6 +22,18 @@ export function buildProgram(): Command {
     .option("--verbose", "print diagnostics to stderr")
     .action(async (path, options) => {
       process.exitCode = await scanCommand(path, options);
+    });
+
+  program
+    .command("explain")
+    .description("Explain the findings for one package (name or name@version)")
+    .argument("<package>", "package name, optionally with @version")
+    .argument("[path]", "project directory", ".")
+    .option("--config <file>", "configuration file")
+    .option("--offline", "use cached advisory data only")
+    .option("--no-cache", "bypass the advisory cache")
+    .action(async (spec, path, options) => {
+      process.exitCode = await explainCommand(spec, path, options);
     });
 
   program
