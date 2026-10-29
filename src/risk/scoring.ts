@@ -26,8 +26,8 @@ function riskLevelFor(score: number): Exclude<RiskLevel, "unknown"> {
   return "low";
 }
 
-type RiskInput =Pick<Finding, "upstreamSeverity" | "dev" | "optional">;
-type RiskResult =Pick<Finding, "riskScore" | "riskLevel" | "factors">;
+type RiskInput = Pick<Finding, "upstreamSeverity" | "dev" | "optional">;
+type RiskResult = Pick<Finding, "riskScore" | "riskLevel" | "factors">;
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
