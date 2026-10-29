@@ -1,0 +1,2 @@
+{ "name": "non-registry-app", "version": "1.0.0", "private": true,
+  "dependencies": { "left-pad": "github:example/left-pad#v1.3.0", "local-lib": "file:./local-lib", "is-number": "7.0.0" } }
