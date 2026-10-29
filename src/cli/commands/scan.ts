@@ -1,13 +1,18 @@
 import { DEFAULT_OSV_URL, OsvClient } from "../../advisories/osv-client";
 import { runScan } from "../../core/scan";
 import type { ScanResult } from "../../core/types";
-import { renderTerminal } from "../../reports/terminal";
+import { emitReport, renderReport, type ReportFormat } from "../../reports/render";
 
 export interface ScanCommandOptions {
   config?: string;
   offline?: boolean;
   cache?: boolean; // commander turns --no-cache into cache: false
   verbose?: boolean;
+}
+
+export interface ScanOutputOptions {
+  format: ReportFormat;
+  output?: string;
 }
 
 /** Shared by scan and explain so both talk to OSV the same way. */
@@ -25,8 +30,11 @@ export function runProjectScan(path: string, options: ScanCommandOptions): Promi
 }
 
 /** Returns the process exit code. */
-export async function scanCommand(path: string, options: ScanCommandOptions): Promise<number> {
+export async function scanCommand(
+  path: string,
+  options: ScanCommandOptions & ScanOutputOptions,
+): Promise<number> {
   const result = await runProjectScan(path, options);
-  console.log(renderTerminal(result));
+  await emitReport(renderReport(result, options.format), options.output);
   return result.status === "complete" ? 0 : 3;
 }

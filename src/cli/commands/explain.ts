@@ -1,4 +1,5 @@
 import { ChainwatchError } from "../../core/errors";
+import { readScanResult } from "../../reports/schema";
 import { renderExplain } from "../../reports/terminal";
 import { runProjectScan, type ScanCommandOptions } from "./scan";
 
@@ -15,7 +16,10 @@ export function parsePackageSpec(spec: string): PackageSpec {
   // A leading "@" is only valid as a scope, so "@" and "@1.2.3" are rejected.
   const badName = !name || (name.startsWith("@") && !name.includes("/"));
   if (badName || version === "") {
-    throw new ChainwatchError("INVALID_PACKAGE", `Invalid package "${spec}": use name or name@version`);
+    throw new ChainwatchError(
+      "INVALID_PACKAGE",
+      `Invalid package "${spec}": use name or name@version`,
+    );
   }
   return { name, version };
 }
@@ -24,13 +28,16 @@ export function parsePackageSpec(spec: string): PackageSpec {
 export async function explainCommand(
   spec: string,
   path: string,
-  options: ScanCommandOptions,
+  options: ScanCommandOptions & { input?: string },
 ): Promise<number> {
   const target = parsePackageSpec(spec);
-  const result = await runProjectScan(path, options);
+  const result = options.input
+    ? await readScanResult(options.input)
+    : await runProjectScan(path, options);
   const matches = result.findings.filter(
     (f) =>
-      f.package.name === target.name && (target.version === undefined || f.package.version === target.version),
+      f.package.name === target.name &&
+      (target.version === undefined || f.package.version === target.version),
   );
   console.log(renderExplain(result, matches, spec));
   return result.status === "complete" ? 0 : 3;
