@@ -5,7 +5,7 @@ import { withoutDev } from "../lockfile/graph";
 import { readNpmLockfile, type ParsedLockfile } from "../lockfile/npm";
 import { loadConfig, type Config } from "../policy/config";
 
-export interface Project {
+interface Project {
   rootPath: string;
   config: Config;
   lockfilePath: string;

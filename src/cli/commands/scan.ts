@@ -1,4 +1,4 @@
-import { DEFAULT_OSV_URL, OsvClient } from "../../advisories/osv-client";
+import { OsvClient } from "../../advisories/osv-client";
 import { runScan } from "../../core/scan";
 import type { ScanResult } from "../../core/types";
 import type { FailOn } from "../../policy/evaluate";
@@ -12,7 +12,7 @@ export interface ScanCommandOptions {
   failOn?: FailOn;
 }
 
-export interface ScanOutputOptions {
+interface ScanOutputOptions {
   format: ReportFormat;
   output?: string;
 }
@@ -20,7 +20,7 @@ export interface ScanOutputOptions {
 /** Shared by scan and explain so both talk to OSV the same way. */
 export function runProjectScan(path: string, options: ScanCommandOptions): Promise<ScanResult> {
   // CHAINWATCH_OSV_URL points the scanner at a mirror or a test server.
-  const provider = new OsvClient({ baseUrl: process.env.CHAINWATCH_OSV_URL ?? DEFAULT_OSV_URL });
+  const provider = new OsvClient(process.env.CHAINWATCH_OSV_URL);
   return runScan({
     path,
     configPath: options.config,
@@ -33,7 +33,7 @@ export function runProjectScan(path: string, options: ScanCommandOptions): Promi
 }
 
 /** An incomplete scan outranks a policy failure: 3 means the result cannot be trusted either way. */
-export function exitCodeFor(result: ScanResult): number {
+function exitCodeFor(result: ScanResult): number {
   if (result.status !== "complete") return 3;
   return result.policy?.passed === false ? 1 : 0;
 }

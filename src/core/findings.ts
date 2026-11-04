@@ -42,7 +42,7 @@ function canonicalId(ids: string[]): string {
   );
 }
 
-export function suggestAction(
+function suggestAction(
   name: string,
   fixed: string[],
   directDependency: string | undefined,

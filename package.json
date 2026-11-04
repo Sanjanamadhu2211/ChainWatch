@@ -20,6 +20,7 @@
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
+    "test": "tsup tests/scan.test.ts tests/html.test.ts --format esm --out-dir node_modules/.cache/chainwatch-tests --silent && node node_modules/.cache/chainwatch-tests/scan.test.js && node node_modules/.cache/chainwatch-tests/html.test.js",
     "format": "prettier --write .",
     "check": "npm run typecheck && npm run lint"
   },

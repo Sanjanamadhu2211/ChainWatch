@@ -44,7 +44,7 @@ export function withoutDev(graph: DependencyGraph): DependencyGraph {
   };
 }
 
-export interface PathsResult {
+interface PathsResult {
   /** Up to `max` shortest paths, as "name@version" labels starting with the project name. */
   paths: string[][];
   /** Number of shortest paths. Longer paths are deliberately not counted. */

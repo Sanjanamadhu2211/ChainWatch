@@ -11,7 +11,7 @@ const SEVERITY: Record<Exclude<Finding["riskLevel"], "unknown">, number> = {
   critical: 4,
 };
 
-export interface EvaluateOptions {
+interface EvaluateOptions {
   /** Effective level: the --fail-on flag if given, else the configured failOn. */
   failOn: FailOn;
   /** Exception expiry is judged against this day (UTC). */

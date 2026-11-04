@@ -1,4 +1,4 @@
-export type Ecosystem = "npm";
+type Ecosystem = "npm";
 
 export interface PackageId {
   ecosystem: Ecosystem;
@@ -60,11 +60,9 @@ export interface Advisory {
   };
   affected: {
     packageName: string;
-    versions: string[];
     ranges: AffectedRange[];
   }[];
   references: string[];
-  modifiedAt?: string;
 }
 
 export type RiskLevel = "critical" | "high" | "medium" | "low" | "unknown";

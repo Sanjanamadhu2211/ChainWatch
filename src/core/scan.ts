@@ -8,7 +8,7 @@ import { buildFindings, type AffectedPackage } from "./findings";
 import { loadProject } from "./project";
 import type { Advisory, DependencyNode, ScanError, ScanResult } from "./types";
 
-export interface ScanOptions {
+interface ScanOptions {
   path: string;
   configPath?: string;
   /** Use only cached advisory data; never touch the network. */
@@ -133,14 +133,20 @@ export async function runScan(options: ScanOptions): Promise<ScanResult> {
     else toFetch.push(id);
   }
   if (toFetch.length > 0 && provider) {
-    for (const [id, lookup] of await provider.getAdvisories(toFetch)) {
-      if (lookup.ok) {
+    const results = await provider.getAdvisories(toFetch);
+    for (const id of toFetch) {
+      const lookup = results.get(id);
+      if (lookup?.ok) {
         advisories.set(id, lookup.value);
         cache.setAdvisory(lookup.value, startedAt);
         freshLookups++;
       } else {
         for (const key of keysById.get(id) ?? [])
-          fail(key, "ADVISORY_LOOKUP_FAILED", `advisory ${id}: ${lookup.error}`);
+          fail(
+            key,
+            "ADVISORY_LOOKUP_FAILED",
+            `advisory ${id}: ${lookup?.error ?? "no answer from the provider"}`,
+          );
       }
     }
   }

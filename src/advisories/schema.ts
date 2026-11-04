@@ -6,7 +6,7 @@ import type { Advisory } from "../core/types";
 export const queryBatchResponseSchema = z.object({
   results: z.array(
     z.object({
-      vulns: z.array(z.object({ id: z.string(), modified: z.string().optional() })).optional(),
+      vulns: z.array(z.object({ id: z.string() })).optional(),
       next_page_token: z.string().optional(),
     }),
   ),
@@ -25,7 +25,6 @@ const osvVulnSchema = z.object({
   summary: z.string().optional(),
   details: z.string().optional(),
   withdrawn: z.string().optional(),
-  modified: z.string().optional(),
   severity: z.array(z.object({ type: z.string(), score: z.string() })).optional(),
   database_specific: z.object({ severity: z.string().optional() }).loose().optional(),
   affected: z
@@ -33,7 +32,6 @@ const osvVulnSchema = z.object({
       z.object({
         package: z.object({ name: z.string(), ecosystem: z.string() }).optional(),
         ranges: z.array(z.object({ type: z.string(), events: z.array(osvEvent) })).optional(),
-        versions: z.array(z.string()).optional(),
       }),
     )
     .optional(),
@@ -59,13 +57,11 @@ export function parseOsvVuln(json: unknown): Advisory {
       .filter((a) => a.package?.ecosystem === "npm")
       .map((a) => ({
         packageName: (a.package as { name: string }).name,
-        versions: a.versions ?? [],
         ranges: (a.ranges ?? [])
           .filter((r) => RANGE_TYPES.has(r.type))
           .map((r) => ({ type: r.type as "SEMVER" | "ECOSYSTEM" | "GIT", events: r.events })),
       })),
     references: (v.references ?? []).map((r) => r.url),
-    ...(v.modified ? { modifiedAt: v.modified } : {}),
   };
 }
 
@@ -82,12 +78,10 @@ export const advisorySchema: z.ZodType<Advisory> = z.object({
   affected: z.array(
     z.object({
       packageName: z.string(),
-      versions: z.array(z.string()),
       ranges: z.array(
         z.object({ type: z.enum(["SEMVER", "ECOSYSTEM", "GIT"]), events: z.array(osvEvent) }),
       ),
     }),
   ),
   references: z.array(z.string()),
-  modifiedAt: z.string().optional(),
 });

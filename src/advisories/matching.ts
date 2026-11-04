@@ -7,7 +7,7 @@ import type { Advisory, AffectedRange } from "../core/types";
  * `last_affected` turn it off. Returns undefined when the range cannot be evaluated (GIT ranges
  * or versions that are not valid semver).
  */
-export function inRange(range: AffectedRange, version: string): boolean | undefined {
+function inRange(range: AffectedRange, version: string): boolean | undefined {
   if (range.type === "GIT" || !semver.valid(version)) return undefined;
   const events = range.events
     .map((e) => ({ e, at: e.introduced ?? e.fixed ?? e.last_affected }))

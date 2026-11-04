@@ -1,7 +1,7 @@
 import { readScanResult } from "../../reports/schema";
 import { emitReport, renderReport, type ReportFormat } from "../../reports/render";
 
-export interface ReportCommandOptions {
+interface ReportCommandOptions {
   input: string;
   format: ReportFormat;
   output?: string;
